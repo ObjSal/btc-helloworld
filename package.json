@@ -1,0 +1,30 @@
+{
+  "name": "btc-helloworld",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ObjSal/btc-helloworld.git"
+  },
+  "keywords": [
+    "bitcoin",
+    "bitcoinjs"
+  ],
+  "author": "Salvador Guerrero",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ObjSal/btc-helloworld/issues"
+  },
+  "homepage": "https://github.com/ObjSal/btc-helloworld#readme",
+  "description": "",
+  "dependencies": {
+    "bip32": "^5.0.0-rc.0",
+    "bip39": "^3.1.0",
+    "bitcoinjs-lib": "^6.1.7",
+    "ecpair": "^2.1.0",
+    "tiny-secp256k1": "^2.2.3"
+  }
+}
