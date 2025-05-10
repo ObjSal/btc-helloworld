@@ -36,18 +36,18 @@ const mnemonic = 'diagram average divide urban office bench ready dirt popular p
 //  Funding Transaction Details
 const fundingTxId = '1862e5293c83e138a5768de66a4dc1dc529cbd8189236a88f2923b1249b63601';
 const fundingIndex = 1;
-const fundingAmount = 5000;
+const fundingAmount = BigInt(5000);
 
 // New Transaction Output Details
 const message = 'Hello World';
-const fee = 150;
+const fee = 150n;
 
 // Generate seed from mnemonic
 const seed = bip39.mnemonicToSeedSync(mnemonic);
 const root = bip32.fromSeed(seed, network);
 const taprootChild = root.derivePath(path);
 // Generate the key pair to verify and sign the input we're going to spend from the transaction
-const taprootKeyPair = ECPair.fromPrivateKey(Buffer.from(taprootChild.privateKey), { network: network });
+const taprootKeyPair = ECPair.fromPrivateKey(taprootChild.privateKey, { network: network });
 // Internal public key (x-only, 32 bytes)
 const internalPubkey = taprootKeyPair.publicKey.slice(1, 33);
 // Generate the p2tr to get the output for the spending input
@@ -55,7 +55,7 @@ const p2tr = bitcoin.payments.p2tr({ internalPubkey: internalPubkey, network });
   
 // Create the change p2tr to get the address where we're going to receive the change
 const changeChild = root.derivePath(path_change);
-const changeInternalPubkey = Buffer.from(changeChild.publicKey.slice(1, 33));
+const changeInternalPubkey = changeChild.publicKey.slice(1, 33);
 const changep2tr = bitcoin.payments.p2tr({ internalPubkey: changeInternalPubkey, network });
 
 // Create PSBT
@@ -66,7 +66,7 @@ psbt.addInput({
     hash: fundingTxId,
     index: fundingIndex,
     witnessUtxo: {
-        script: p2tr.output,
+        script: Uint8Array.from(p2tr.output),
         value: fundingAmount,
     },
     tapInternalKey: internalPubkey,
@@ -75,14 +75,15 @@ psbt.addInput({
   
 // Add OP_RETURN output
 const data = Buffer.from(message, 'utf8');
+const opReturnScript = bitcoin.script.compile([bitcoin.opcodes.OP_RETURN, data]);
 psbt.addOutput({
-    script: bitcoin.script.compile([bitcoin.opcodes.OP_RETURN, data]),
-    value: 0,
+    script: Uint8Array.from(opReturnScript), // Convert Buffer to Uint8Array
+    value: 0n, // OP_RETURN outputs should have a value of 0
 });
   
 // Add change output
 const changeAmount = fundingAmount - fee;
-if (changeAmount < 0) {
+if (changeAmount < 0n) {
     throw new Error("Input amount is less than the fee");
 }
 
@@ -94,7 +95,7 @@ psbt.addOutput({
 // Used for signing, since the output and address are using a tweaked key
 // We must tweak the signer in the same way.
 const tweakedChildNode = taprootKeyPair.tweak(
-    bitcoin.crypto.taggedHash('TapTweak', internalPubkey),
+    Buffer.from(bitcoin.crypto.taggedHash('TapTweak', internalPubkey))
 );
 
 psbt.signInput(0, tweakedChildNode);
