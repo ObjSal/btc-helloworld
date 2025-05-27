@@ -98,7 +98,7 @@ const tweakedChildNode = taprootKeyPair.tweak(
     Buffer.from(bitcoin.crypto.taggedHash('TapTweak', internalPubkey))
 );
 
-psbt.signInput(0, tweakedChildNode);
+psbt.signInput(0, tweakedChildNode, [bitcoin.Transaction.SIGHASH_DEFAULT]);
 psbt.finalizeAllInputs();
   
 const tx = psbt.extractTransaction();
